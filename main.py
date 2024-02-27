@@ -43,17 +43,18 @@ def get_most_between_node(G):
     max_value = max(centralities, key=centralities.get)
     return max_value
 
-def generate_output(nodes_removed):
-    f = open("output.txt", "w")
-    f.write(f"{len(nodes_removed)}\n")
-    nodes_rem = [str(x) for x in nodes_removed]
-    f.write(" ".join(nodes_rem))
+def generate_output(nodes_removed, output_filename):
+    with open(output_filename, "w") as f:
+        f.write(f"{len(nodes_removed)}\n")
+        nodes_rem = [str(x) for x in nodes_removed]
+        f.write(" ".join(nodes_rem))
 
 lines = []
-fileName = sys.argv[1]
+inputFileName = sys.argv[1]
+outputFileName = sys.argv[2]  # New line to accept output filename as argument
 G = nx.DiGraph()
-for line in fileinput.input(files=fileName, encoding="utf-8"):
-    lines.append(line.replace("\n", "").split(" "))
+for line in fileinput.input(files=inputFileName, encoding="utf-8"):
+    lines.append(line.strip().split(" "))
 nodeCnt = int(lines[0][0])
 for i in range(nodeCnt):
     G.add_node(i+1)
@@ -63,4 +64,4 @@ for i in range(1, nodeCnt+1):
             G.add_edge(int(start), i)
 
 nodes_removed = remove_from_most_cycles(G)
-generate_output(nodes_removed)
+generate_output(nodes_removed, outputFileName)
