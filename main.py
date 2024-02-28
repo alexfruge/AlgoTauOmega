@@ -5,6 +5,7 @@ import numpy as np
 import sys
 
 from collections import Counter
+# ** THIS METHOD IS SLOWER BUT MORE ACCURATE **
 # this loop finds the element in the most cycles in the graph, and removes it until there are
 # no more cycles
 def remove_from_most_cycles(G):
@@ -23,6 +24,22 @@ def remove_from_most_cycles(G):
         most_common_element, count = counter.most_common(1)[0]
         nodes_removed.append(most_common_element)
         G.remove_node(most_common_element)
+    return nodes_removed
+
+# ** THIS METHOD IS FASTER BUT LESS ACCURATE  **
+def remove_high_degree_node(G):
+    nodes_removed = []
+    while True:
+        # Check if the graph has cycles
+        if nx.is_directed_acyclic_graph(G):
+            break
+        # Compute degrees
+        degree_dict = G.degree()
+        # Find node with the highest degree
+        max_degree_node = max(degree_dict, key=lambda x: x[1])[0]
+        # Remove the node with the highest degree
+        nodes_removed.append(max_degree_node)
+        G.remove_node(max_degree_node)
     return nodes_removed
 
 # finds and returns the node with the highest "closeness centrality"
@@ -64,5 +81,5 @@ for i in range(1, nodeCnt+1):
         if start != '':
             G.add_edge(int(start), i)
 
-nodes_removed = remove_from_most_cycles(G)
+nodes_removed = remove_high_degree_node(G) # CHANGE THIS LINE TO GO FROM SLOW TO FAST HEURISTIC AND VICE VERSA
 generate_output(nodes_removed, outputFileName)
