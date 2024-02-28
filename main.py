@@ -53,8 +53,9 @@ lines = []
 inputFileName = sys.argv[1]
 outputFileName = sys.argv[2]  # New line to accept output filename as argument
 G = nx.DiGraph()
-for line in fileinput.input(files=inputFileName, encoding="utf-8"):
-    lines.append(line.strip().split(" "))
+with open(inputFileName, 'r', encoding='utf-8') as file:
+    for line in file:
+        lines.append(line.strip().split(" "))
 nodeCnt = int(lines[0][0])
 for i in range(nodeCnt):
     G.add_node(i+1)
