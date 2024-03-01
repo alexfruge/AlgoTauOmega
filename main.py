@@ -66,20 +66,44 @@ def generate_output(nodes_removed, output_filename):
         nodes_rem = [str(x) for x in nodes_removed]
         f.write(" ".join(nodes_rem))
 
-lines = []
-inputFileName = sys.argv[1]
-outputFileName = sys.argv[2]  # New line to accept output filename as argument
-G = nx.DiGraph()
-with open(inputFileName, 'r', encoding='utf-8') as file:
-    for line in file:
-        lines.append(line.strip().split(" "))
-nodeCnt = int(lines[0][0])
-for i in range(nodeCnt):
-    G.add_node(i+1)
-for i in range(1, nodeCnt+1):
-    for start in lines[i][1:]:
-        if start != '':
-            G.add_edge(int(start), i)
+def remove_to_acyclic_by_betweenness(G):
+    nodes_removed = []
+    while True:
+        try:
+            # Detect a cycle
+            cycle = nx.find_cycle(G, orientation='original')
+        except nx.NetworkXNoCycle:
+            break  # Exit if the graph is acyclic
+        
+        # Calculate betweenness centrality of nodes in the detected cycle
+        cycle_nodes = set(node for edge in cycle for node in edge[:2])
+        centrality = nx.betweenness_centrality_subset(G, sources=cycle_nodes, targets=cycle_nodes)
+        
+        # Find the node with the highest centrality in the cycle
+        node_to_remove = max(centrality, key=centrality.get)
+        
+        # Remove the node with the highest centrality
+        G.remove_node(node_to_remove)
+        nodes_removed.append(node_to_remove)
+    
+    return nodes_removed
 
-nodes_removed = remove_high_degree_node(G) # CHANGE THIS LINE TO GO FROM SLOW TO FAST HEURISTIC AND VICE VERSA
-generate_output(nodes_removed, outputFileName)
+
+if __name__ == "__main__":
+    lines = []
+    inputFileName = sys.argv[1]
+    outputFileName = sys.argv[2]  # New line to accept output filename as argument
+    G = nx.DiGraph()
+    with open(inputFileName, 'r', encoding='utf-8') as file:
+        for line in file:
+            lines.append(line.strip().split(" "))
+    nodeCnt = int(lines[0][0])
+    for i in range(nodeCnt):
+        G.add_node(i+1)
+    for i in range(1, nodeCnt+1):
+        for start in lines[i][1:]:
+            if start != '':
+                G.add_edge(int(start), i)
+
+    nodes_removed = remove_to_acyclic_by_betweenness(G) # CHANGE THIS LINE TO GO FROM SLOW TO FAST HEURISTIC AND VICE VERSA
+    generate_output(nodes_removed, outputFileName)
